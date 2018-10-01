@@ -13,6 +13,9 @@ We recommend that any pipelines that depend on the XML format be transitioned to
 will prove useful in processing EMBL flatfile format.
 https://github.com/enasequence/sequencetools
 
+## Note: 
+This tool converts only one record at a time. If your input file contains multiple records, only the first one will be converted to XML.
+
 ## Usage
 This tool requires Java runtime 8 or higher to be available. 
 
