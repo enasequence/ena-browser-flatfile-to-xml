@@ -28,7 +28,7 @@ This tool requires Java runtime 8 or higher to be available.
 3. [Optional] flatfile format EMBL/CDS/NCR/MASTER
 
 ### Windows
-..\ena-browser-flatfile-to-xml-1.0.0>ff-to-xml.cmd <full-path-to-flat-file> <full-path-to-output-xml-file>
+..\ena-browser-flatfile-to-xml-1.0.0>ff-to-xml.cmd {full-path-to-flat-file} {full-path-to-output-xml-file} [flatfile format]
 
 ### Linux/Mac
 ../ena-browser-flatfile-to-xml-1.0.0$ ./ff-to-xml.sh <full-path-to-flat-file> <full-path-to-output-xml-file>
