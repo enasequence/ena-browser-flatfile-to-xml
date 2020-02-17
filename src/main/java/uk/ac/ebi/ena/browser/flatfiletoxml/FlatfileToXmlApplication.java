@@ -25,9 +25,6 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
     @Value("${xmlfile}")
     String xmlfile;
 
-    @Value("${file.path}")
-    String filePath;
-
     @Pattern(regexp = "(CDS|EMBL|MASTER|NCR|)")
     @Value("${format:#{null}}")
     String inputFormat;
@@ -43,9 +40,6 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("Converting file {}", flatfile);
-        flatfile = filePath + flatfile;
-        xmlfile = filePath + xmlfile;
-
         validateArguments();
 
         File file = new File(flatfile);
