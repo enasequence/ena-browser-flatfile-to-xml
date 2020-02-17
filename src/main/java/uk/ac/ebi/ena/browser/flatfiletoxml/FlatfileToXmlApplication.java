@@ -13,6 +13,7 @@ import uk.ac.ebi.embl.flatfile.writer.xml.XmlEntryWriter;
 
 import javax.validation.constraints.Pattern;
 import java.io.*;
+import java.util.Scanner;
 
 @Slf4j
 @SpringBootApplication
@@ -27,6 +28,8 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
     @Pattern(regexp = "(CDS|EMBL|MASTER|NCR|)")
     @Value("${format:#{null}}")
     String inputFormat;
+
+    private static final String DELIMITER = "//\n";
 
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(FlatfileToXmlApplication.class);
@@ -45,15 +48,26 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
         if (StringUtils.isNotBlank(inputFormat)) {
             format = EmblEntryReader.Format.valueOf(inputFormat + "_FORMAT");
         }
-        try (
-                BufferedReader fileReader = new BufferedReader(new FileReader(file));
-                BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            EmblEntryReader reader = new EmblEntryReader(fileReader,
-                    format, file.getName());
-            reader.read();
-            Entry entry = reader.getEntry();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.lineSeparator());
-            new XmlEntryWriter(entry).write(writer);
+            writer.write("<ROOT>" + System.lineSeparator());
+            try (Scanner scanner = new Scanner(file)) {
+                scanner.useDelimiter(DELIMITER);
+                while (scanner.hasNext()) {
+                    String s = scanner.next();
+                    if (null != s && !s.equals("")) {
+                        s = s + DELIMITER;
+                        try (BufferedReader stringReader = new BufferedReader(new StringReader(s))) {
+                            EmblEntryReader reader = new EmblEntryReader(stringReader, format, null);
+                            reader.read();
+                            Entry entry = reader.getEntry();
+                            new XmlEntryWriter(entry).write(writer);
+                        }
+                    }
+                }
+            }
+            writer.write("</ROOT>");
             System.out.println("Conversion complete.");
         }
     }
