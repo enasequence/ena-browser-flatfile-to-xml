@@ -14,7 +14,7 @@ will prove useful in processing EMBL flatfile format.
 https://github.com/enasequence/sequencetools
 
 ## Note: 
-This tool converts only one record at a time. If your input file contains multiple records, only the first one will be converted to XML.
+This tool only supports converting an entry up to 2GB in size. i.e. your input file may be larger than 2GB if it contains multiple records, but each individual entry should not exceed 2GB in size.
 
 ## Usage
 This tool requires Java runtime 8 or higher to be available. 
