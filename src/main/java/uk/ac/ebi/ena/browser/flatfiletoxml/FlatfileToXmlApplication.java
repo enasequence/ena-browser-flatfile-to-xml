@@ -66,6 +66,11 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
                         }
                     }
                 }
+            } catch (IllegalArgumentException e) {
+                String message = "Failed attempting to convert large entry. This tool only supports converting an " +
+                        "entry up to 2GB in size. i.e. your input file may be larger than 2GB if it contains multiple" +
+                        " records, but each individual entry should not exceed 2GB in size.";
+                System.err.println(message);
             }
             writer.write("</ROOT>");
             System.out.println("Conversion complete.");
