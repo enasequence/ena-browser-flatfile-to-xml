@@ -13,6 +13,7 @@ import uk.ac.ebi.embl.flatfile.writer.xml.XmlEntryWriter;
 
 import javax.validation.constraints.Pattern;
 import java.io.*;
+import java.util.Arrays;
 import java.util.Scanner;
 
 @Slf4j
@@ -28,6 +29,11 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
     @Pattern(regexp = "(CDS|EMBL|MASTER|NCR|)")
     @Value("${format:#{null}}")
     String inputFormat;
+
+    static final String[] messages = new String[]{"ERROR:Failed attempting to convert large entry.",
+            "This tool only supports converting an entry up to 1GB in size.",
+            "Your input file can be larger than 1GB if it contains multiple records, " +
+                    "but each individual entry should not exceed 1GB in size."};
 
     private static final String DELIMITER = "//\n";
 
@@ -63,17 +69,22 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
                             reader.read();
                             Entry entry = reader.getEntry();
                             new XmlEntryWriter(entry).write(writer);
+                            writer.flush();
                         }
                     }
                 }
+                System.out.println("Conversion complete.");
             } catch (IllegalArgumentException e) {
-                String message = "Failed attempting to convert large entry. This tool only supports converting an " +
-                        "entry up to 2GB in size. i.e. your input file may be larger than 2GB if it contains multiple" +
-                        " records, but each individual entry should not exceed 2GB in size.";
-                System.err.println(message);
+                Arrays.asList(messages).forEach(m -> {
+                    System.err.println(m);
+                });
+
+            } catch (OutOfMemoryError e) {
+                Arrays.asList(messages).forEach(m -> {
+                    System.err.println(m);
+                });
             }
             writer.write("</ROOT>");
-            System.out.println("Conversion complete.");
         }
     }
 

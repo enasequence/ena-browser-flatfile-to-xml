@@ -1,5 +1,5 @@
 #!/bin/bash
-JAR=ena-browser-flatfile-to-xml-1.0.0.jar
+JAR=./ena-browser-flatfile-to-xml.jar
 if [ $# -eq 3 ]
 then
     java -jar $JAR --flatfile="$1" --xmlfile="$2" --format="$3"
