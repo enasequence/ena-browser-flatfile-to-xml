@@ -1,6 +1,6 @@
 @echo off
 set JAR=.\ena-browser-flatfile-to-xml.jar
-set JAVA=java -Xms128m -Xmx4096m
+set JAVA=java
 IF "%~1"=="" GOTO noargs
 IF "%~2"=="" GOTO noargs
 IF "%~3"=="" GOTO defaultformat

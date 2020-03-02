@@ -14,7 +14,6 @@ import uk.ac.ebi.embl.flatfile.writer.xml.XmlEntryWriter;
 import javax.validation.constraints.Pattern;
 import java.io.*;
 import java.util.Arrays;
-import java.util.Scanner;
 
 @Slf4j
 @SpringBootApplication
@@ -29,13 +28,6 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
     @Pattern(regexp = "(CDS|EMBL|MASTER|NCR|)")
     @Value("${format:#{null}}")
     String inputFormat;
-
-    static final String[] messages = new String[]{"ERROR:Failed attempting to convert large entry.",
-            "This tool only supports converting an entry up to 1GB in size.",
-            "Your input file can be larger than 1GB if it contains multiple records, " +
-                    "but each individual entry should not exceed 1GB in size."};
-
-    private static final String DELIMITER = "//\n";
 
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(FlatfileToXmlApplication.class);
@@ -55,36 +47,27 @@ public class FlatfileToXmlApplication implements CommandLineRunner {
             format = EmblEntryReader.Format.valueOf(inputFormat + "_FORMAT");
         }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+             BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.lineSeparator());
             writer.write("<ROOT>" + System.lineSeparator());
-            try (Scanner scanner = new Scanner(file)) {
-                scanner.useDelimiter(DELIMITER);
-                while (scanner.hasNext()) {
-                    String s = scanner.next();
-                    if (null != s && !s.equals("")) {
-                        s = s + DELIMITER;
-                        try (BufferedReader stringReader = new BufferedReader(new StringReader(s))) {
-                            EmblEntryReader reader = new EmblEntryReader(stringReader, format, null);
-                            reader.read();
-                            Entry entry = reader.getEntry();
-                            new XmlEntryWriter(entry).write(writer);
-                            writer.flush();
-                        }
-                    }
-                }
-                System.out.println("Conversion complete.");
-            } catch (IllegalArgumentException e) {
-                Arrays.asList(messages).forEach(m -> {
-                    System.err.println(m);
-                });
 
-            } catch (OutOfMemoryError e) {
-                Arrays.asList(messages).forEach(m -> {
-                    System.err.println(m);
-                });
+            EmblEntryReader inputReader = new EmblEntryReader(bufferedReader,
+                    EmblEntryReader.Format.EMBL_FORMAT, file.getName());
+            inputReader.read();
+
+            while (inputReader.isEntry()) {
+                // Get the next EMBL Entry
+                Entry entry = inputReader.getEntry();
+                new XmlEntryWriter(entry).write(writer);
+                writer.flush();
+                inputReader.read();
             }
             writer.write("</ROOT>");
+            System.out.println("Conversion complete.");
+        } catch (Exception e) {
+            log.error("Conversion failed:", e);
+            log.error("Please open a ticket at https://www.ebi.ac.uk/ena/browser/support with the full output above.");
         }
     }
 
